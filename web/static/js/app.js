@@ -1,17 +1,32 @@
 import {Socket, LongPoller} from "phoenix"
 
-class App {
+function generateUUID(){
+    var d = new Date().getTime();
+    if(window.performance && typeof window.performance.now === "function"){
+        d += performance.now(); //use high-precision timer if available
+    }
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+    });
+    return uuid;
+}
 
+class App {
   static init(){
     let socket = new Socket("/socket", {
       logger: ((kind, msg, data) => { console.log(`${kind}: ${msg}`, data) })
     })
 
-    socket.connect({user_id: "123"})
+    let uuid       = generateUUID()
+    socket.connect({user_id: uuid})
     var $status    = $("#status")
     var $messages  = $("#messages")
     var $input     = $("#message-input")
     var $username  = $("#username")
+    var $joingame  = $("#join-game")
+    var $sendevent = $("#send-event")
 
     socket.onOpen( ev => console.log("OPEN", ev) )
     socket.onError( ev => console.log("ERROR", ev) )
@@ -39,6 +54,15 @@ class App {
     chan.on("user:entered", msg => {
       var username = this.sanitize(msg.user || "anonymous")
       $messages.append(`<br/><i>[${username} entered]</i>`)
+    })
+
+    $joingame.on("click", () => {
+      chan.push("game:new", null)
+    })
+
+    chan.on("game:join", msg => {
+      $messages.append(`<p><strong>Joining game ${msg.game}</strong></p>`)
+      chan.push("game:join", msg)
     })
   }
 

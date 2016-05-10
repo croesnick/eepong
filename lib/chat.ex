@@ -19,6 +19,8 @@ defmodule Chat do
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Chat.Supervisor]
     Supervisor.start_link(children, opts)
+
+    Chat.Users.start_link
   end
 
   # Tell Phoenix to update the endpoint configuration

@@ -2387,6 +2387,19 @@ var _phoenix = require("phoenix");
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function generateUUID() {
+  var d = new Date().getTime();
+  if (window.performance && typeof window.performance.now === "function") {
+    d += performance.now(); //use high-precision timer if available
+  }
+  var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = (d + Math.random() * 16) % 16 | 0;
+    d = Math.floor(d / 16);
+    return (c == 'x' ? r : r & 0x3 | 0x8).toString(16);
+  });
+  return uuid;
+}
+
 var App = function () {
   function App() {
     _classCallCheck(this, App);
@@ -2403,11 +2416,14 @@ var App = function () {
         }
       });
 
-      socket.connect({ user_id: "123" });
+      var uuid = generateUUID();
+      socket.connect({ user_id: uuid });
       var $status = $("#status");
       var $messages = $("#messages");
       var $input = $("#message-input");
       var $username = $("#username");
+      var $joingame = $("#join-game");
+      var $sendevent = $("#send-event");
 
       socket.onOpen(function (ev) {
         return console.log("OPEN", ev);
@@ -2449,6 +2465,15 @@ var App = function () {
       chan.on("user:entered", function (msg) {
         var username = _this.sanitize(msg.user || "anonymous");
         $messages.append("<br/><i>[" + username + " entered]</i>");
+      });
+
+      $joingame.on("click", function () {
+        chan.push("game:new", null);
+      });
+
+      chan.on("game:join", function (msg) {
+        $messages.append("<p><strong>Joining game " + msg.game + "</strong></p>");
+        chan.push("game:join", msg);
       });
     }
   }, {

@@ -1,12 +1,9 @@
 <div class="row">
   <div class="col-sm-4">
-    <div id="messages" class="container">
-    </div>
+    <div id="messages" class="container" />
   </div>
   <div class="col-sm-8">
-    <div id="game-pane" class="container">
-      <p>Foo</p>
-    </div>
+    <div id="elm-main" class="container" />
   </div>
   <div id="footer">
     <div class="container">

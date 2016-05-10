@@ -26,7 +26,6 @@ class App {
     var $input     = $("#message-input")
     var $username  = $("#username")
     var $joingame  = $("#join-game")
-    var $sendevent = $("#send-event")
 
     socket.onOpen( ev => console.log("OPEN", ev) )
     socket.onError( ev => console.log("ERROR", ev) )
@@ -64,6 +63,9 @@ class App {
       $messages.append(`<p><strong>Joining game ${msg.game}</strong></p>`)
       chan.push("game:join", msg)
     })
+
+    var elmDiv = document.getElementById('elm-main'),
+        elmApp = Elm.embed(Elm.Pong, elmDiv);
   }
 
   static sanitize(html){ return $("<div/>").text(html).html() }

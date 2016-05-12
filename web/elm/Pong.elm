@@ -34,7 +34,15 @@ update : Event -> State -> State
 update event state =
   case event of
     BoxDx dx ->
-      { state | x = state.x + 4 * toFloat dx }
+      let
+        boundary = 440 / 2 - 100 / 2
+        tmpX = state.x + 4 * toFloat dx
+        newX =
+          if tmpX <= -boundary then -boundary
+          else if tmpX >= boundary then boundary
+          else tmpX
+      in
+        { state | x = newX }
 
 
 -- VIEW

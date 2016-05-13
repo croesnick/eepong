@@ -77,11 +77,9 @@ arrowKeysSignal =
 
 paddleMovement : Signal Event
 paddleMovement =
-  Signal.map PaddlePosition (
-    Signal.dropRepeats (
-      Signal.foldp (\dx oldPosX -> paddlePlacement oldPosX dx) 0.0 arrowKeysSignal
-    )
-  )
+  Signal.map PaddlePosition
+  <| Signal.dropRepeats
+  <| Signal.foldp (\dx oldPosX -> paddlePlacement oldPosX dx) 0.0 arrowKeysSignal
 
 
 -- HELPER FUNCTIONS

@@ -26,6 +26,7 @@ class App {
     var $input     = $("#message-input")
     var $username  = $("#username")
     var $joingame  = $("#join-game")
+    var $gamechan  = null
 
     socket.onOpen( ev => console.log("OPEN", ev) )
     socket.onError( ev => console.log("ERROR", ev) )
@@ -60,8 +61,14 @@ class App {
     })
 
     chan.on("game:join", msg => {
-      $messages.append(`<p><strong>Joining game ${msg.game}</strong></p>`)
-      chan.push("game:join", msg)
+      $gamechan = socket.channel("game:" + msg.game, {})
+      $gamechan.join().receive("ignore", () => console.log("auth error"))
+                      .receive("ok", () => console.log("join ok"))
+                      .after(10000, () => console.log("Connection interruption"))
+      $gamechan.onError(e => console.log("something went wrong", e))
+      $gamechan.onClose(e => console.log("channel closed", e))
+
+      $messages.append(`<p><strong>Joined game ${msg.game}</strong></p>`)
     })
 
     var elmDiv = document.getElementById('elm-main'),

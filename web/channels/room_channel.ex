@@ -24,11 +24,27 @@ defmodule Chat.RoomChannel do
     {:error, %{reason: "unauthorized"}}
   end
 
+  def join("game:" <> game_id, _message, socket) do
+    send(self, {:game_after_join, %{game: game_id}})
+    {:ok, socket}
+  end
+
   def handle_info({:after_join, msg}, socket) do
     login_user socket.assigns.user_id, socket
 
     broadcast! socket, "user:entered", %{user: msg["user"]}
     push socket, "join", %{status: "connected"}
+    {:noreply, socket}
+  end
+
+  def handle_info({:game_after_join, %{game: game_id}}, socket) do
+    Logger.info "User #{socket.assigns.user_id} joined game #{inspect game_id}"
+    assign socket, :game, game_id
+
+    # -- The js-part subscribed to the channel
+    # Logger.info "Subscribing user #{socket.assigns.user_id} to game channel"
+    # Chat.Endpoint.subscribe self(), "game:#{game_id}"
+
     {:noreply, socket}
   end
 
@@ -70,16 +86,6 @@ defmodule Chat.RoomChannel do
         :ok = push other_socket, "game:join", %{game: game_id}
     end
     {:noreply, socket}
-  end
-
-  def handle_in("game:join", %{"game" => game_id}, socket) do
-    Logger.info "User #{socket.assigns.user_id} joined game #{inspect game_id}"
-    assign socket, :game, game_id
-
-    Logger.info "Subscribing user #{socket.assigns.user_id} to game channel"
-    Chat.Endpoint.subscribe self(), "game:#{game_id}"
-
-    {:reply, :ok, socket}
   end
 
   # TODO Should be moved into Chat.Game.

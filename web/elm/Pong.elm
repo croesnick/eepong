@@ -28,21 +28,20 @@ initialState =
 
 -- UPDATE
 
-type Event = BoxDx Int
+port movePaddle : Signal Float
+port movePaddle =
+  Signal.map (
+    \event ->
+      case event of
+        PaddlePosition posX -> posX
+  ) paddleMovement
+
+type Event = PaddlePosition Float
 
 update : Event -> State -> State
 update event state =
   case event of
-    BoxDx dx ->
-      let
-        boundary = 440 / 2 - 100 / 2
-        tmpX = state.x + 4 * toFloat dx
-        newX =
-          if tmpX <= -boundary then -boundary
-          else if tmpX >= boundary then boundary
-          else tmpX
-      in
-        { state | x = newX }
+    PaddlePosition posX -> { state | x = posX }
 
 
 -- VIEW
@@ -66,13 +65,35 @@ box x =
 
 timeDelta : Signal Time
 timeDelta =
-  Signal.map inSeconds (fps 35)
-
-keyboardSignal : Signal Event
-keyboardSignal =
-  Signal.sampleOn timeDelta <|
-    Signal.map BoxDx (Signal.map .x Keyboard.arrows)
+  Signal.map inSeconds (fps 40)
 
 gameSignal : Signal State
-gameSignal = Signal.foldp update initialState keyboardSignal
+gameSignal = Signal.foldp update initialState paddleMovement
 
+arrowKeysSignal : Signal Int
+arrowKeysSignal =
+  Signal.sampleOn timeDelta <|
+    Signal.map .x Keyboard.arrows
+
+paddleMovement : Signal Event
+paddleMovement =
+  Signal.map PaddlePosition (
+    Signal.dropRepeats (
+      Signal.foldp (\dx oldPosX -> paddlePlacement oldPosX dx) 0.0 arrowKeysSignal
+    )
+  )
+
+
+-- HELPER FUNCTIONS
+
+paddlePlacement : Float -> Int -> Float
+paddlePlacement posX dx =
+  let
+    boundary = 440 / 2 - 100 / 2
+    tmpX = posX + 4 * toFloat dx
+    newPosX =
+      if tmpX <= -boundary then -boundary
+      else if tmpX >= boundary then boundary
+      else tmpX
+  in
+    newPosX

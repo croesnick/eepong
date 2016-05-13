@@ -66,6 +66,10 @@ class App {
 
     var elmDiv = document.getElementById('elm-main'),
         elmApp = Elm.embed(Elm.Pong, elmDiv);
+
+    elmApp.ports.movePaddle.subscribe(function(pos) {
+      console.log("Key pressed: " + pos)
+    })
   }
 
   static sanitize(html){ return $("<div/>").text(html).html() }

@@ -68,6 +68,11 @@ class App {
       $gamechan.onError(e => console.log("something went wrong", e))
       $gamechan.onClose(e => console.log("channel closed", e))
 
+      $gamechan.on("new:msg", msg => {
+        $messages.append(this.messageTemplate(msg))
+        scrollTo(0, document.body.scrollHeight)
+      })
+
       $messages.append(`<p><strong>Joined game ${msg.game}</strong></p>`)
     })
 
@@ -76,6 +81,9 @@ class App {
 
     elmApp.ports.movePaddle.subscribe(function(pos) {
       console.log("Key pressed: " + pos)
+      if ($gamechan !== null) {
+        $gamechan.push("new:msg", {user: "SYSTEM", body: pos})
+      }
     })
   }
 

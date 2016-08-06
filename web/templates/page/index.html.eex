@@ -2,7 +2,7 @@
   <div class="container">
     <div class="row">
       <div id="messages" class="col-sm-4"></div>
-      <div id="elm-main" class="col-sm-8">Bar</div>
+      <div id="elm-main" class="col-sm-8" style="height:400px;"></div>
     </div>
   </div>
 </div>
@@ -10,6 +10,9 @@
 <div id="footer">
   <div class="container">
     <div class="row">
+      <div class="col-sm-1">
+        <button id="reset-paddle" class="btn btn-alert" type="button">Reset</button>
+      </div>
       <div class="col-sm-2">
         <button id="join-game" class="btn btn-primary" type="button">Join Game</button>
       </div>
@@ -19,7 +22,7 @@
           <input id="username" type="text" class="form-control" placeholder="username">
         </div><!-- /input-group -->
       </div><!-- /.col-lg-6 -->
-      <div class="col-sm-8">
+      <div class="col-sm-7">
         <input id="message-input" class="form-control" />
       </div><!-- /.col-lg-6 -->
     </div><!-- /.row -->

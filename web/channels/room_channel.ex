@@ -39,7 +39,8 @@ defmodule Chat.RoomChannel do
 
   def handle_info({:game_after_join, %{game: game_id}}, socket) do
     Logger.info "User #{socket.assigns.user_id} joined game #{inspect game_id}"
-    assign socket, :game, game_id
+    socket = assign(socket, :game_id, game_id)
+    Logger.debug inspect(socket.assigns)
 
     # -- The js-part subscribed to the channel
     # Logger.info "Subscribing user #{socket.assigns.user_id} to game channel"
@@ -79,7 +80,7 @@ defmodule Chat.RoomChannel do
         game_id = UUID.uuid1
 
         Logger.info "Creating new game #{game_id}"
-        Chat.Game.start game_id
+        Chat.Game.start game_id, socket, other_socket
 
         Logger.info "Sending join-message to both users"
         :ok = push socket, "game:join", %{game: game_id}
@@ -88,12 +89,37 @@ defmodule Chat.RoomChannel do
     {:noreply, socket}
   end
 
-  # TODO Should be moved into Chat.Game.
-  def handle_in("event", %{"event" => event}, socket) do
-    # TODO add guard for possible event names
-    Chat.Game.handle_event socket.assigns.game, String.to_atom(event)
+  # There are several event types:
+  # - Simple move updates (space, paddle)
+  #   -> game:event, {"name" => "move", "data" => {...}}
+  # - One player scored a point
+  #   -> game:event {"name" => "score", "data" => {...}}
+  # - Game ended
+  #   -> game:event {"name" => "end_game", "data" => {...}}
+
+  def handle_in("game:event", %{"space" => space, "paddle" => paddle} = event, socket) do
+    if Map.has_key?(socket.assigns, :game_id) do
+      game_id = socket.assigns.game_id
+      opponent_socket = Chat.Game.opponent game_id, socket
+
+      user_id = socket.assigns.user_id
+      opponent_user_id = opponent_socket.assigns.user_id
+
+      if user_id != opponent_socket do
+#        Logger.debug "Pushing data: #{inspect socket.assigns.user_id} -> #{inspect opponent_socket.assigns.user_id}"
+        :ok = push opponent_socket, "game:event2", event
+      end
+    end
+
     {:noreply, socket}
   end
+
+##   TODO Should be moved into Chat.Game.
+#  def handle_in("event", %{"event" => event}, socket) do
+##     TODO add guard for possible event names
+#    Chat.Game.handle_event socket.assigns.game, String.to_atom(event)
+#    {:noreply, socket}
+#  end
 
   defp login_user(user, socket) do
     :ok = Chat.Users.add user, socket

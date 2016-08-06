@@ -19,14 +19,13 @@ class App {
       logger: ((kind, msg, data) => { console.log(`${kind}: ${msg}`, data) })
     })
 
-    let uuid       = generateUUID()
-    socket.connect({user_id: uuid})
-    var $status    = $("#status")
-    var $messages  = $("#messages")
-    var $input     = $("#message-input")
-    var $username  = $("#username")
-    var $joingame  = $("#join-game")
-    var $gamechan  = null
+    let uuid       = generateUUID();
+    socket.connect({user_id: uuid});
+    var $messages  = $("#messages");
+    var $input     = $("#message-input");
+    var $username  = $("#username");
+    var $joingame  = $("#join-game");
+    var $gamechan  = null;
 
     socket.onOpen( ev => console.log("OPEN", ev) )
     socket.onError( ev => console.log("ERROR", ev) )
@@ -41,7 +40,7 @@ class App {
 
     $input.off("keypress").on("keypress", e => {
       if (e.keyCode == 13) {
-        chan.push("new:msg", {user: $username.val(), body: $input.val()})
+        chan.push("new:msg", {user: $username.val(), body: $input.val()});
         $input.val("")
       }
     })
@@ -59,32 +58,43 @@ class App {
     $joingame.on("click", () => {
       chan.push("game:new", null)
     })
-
+    
+    var elmInitValues = { inputPort: [false, 0] };
+    var elmDiv = document.getElementById('elm-main'),
+        elmApp = Elm.embed(Elm.Pong, elmDiv, elmInitValues);
+    
     chan.on("game:join", msg => {
-      $gamechan = socket.channel("game:" + msg.game, {})
+      $gamechan = socket.channel("game:" + msg.game, {});
       $gamechan.join().receive("ignore", () => console.log("auth error"))
-                      .receive("ok", () => console.log("join ok"))
+                      .receive("ok", () => console.log("Joined game:" + msg.game))
                       .after(10000, () => console.log("Connection interruption"))
       $gamechan.onError(e => console.log("something went wrong", e))
       $gamechan.onClose(e => console.log("channel closed", e))
 
-      $gamechan.on("new:msg", msg => {
-        $messages.append(this.messageTemplate(msg))
-        scrollTo(0, document.body.scrollHeight)
+      // $gamechan.on("new:msg", msg => {
+      //   $messages.append(this.messageTemplate(msg))
+      //   scrollTo(0, document.body.scrollHeight)
+      // })
+
+      //TODO Uff: The game:eventX message is passed over the wrong channel :-O
+      chan.on("game:event2", msg => {
+        // console.log("Got upstream game event: " + msg);
+        var eventData = [ msg["space"], msg["paddle"] ];
+        elmApp.ports.inputPort.send(eventData);
       })
-
-      $messages.append(`<p><strong>Joined game ${msg.game}</strong></p>`)
+    
+      $messages.append(`<p><strong>You joined game ${msg.game}</strong></p>`);
+    
+      // TODO Enable/load Elm Pong
     })
-
-    var elmDiv = document.getElementById('elm-main'),
-        elmApp = Elm.embed(Elm.Pong, elmDiv);
-
-    elmApp.ports.movePaddle.subscribe(function(pos) {
-      console.log("Key pressed: " + pos)
+    
+    elmApp.ports.outputPort.subscribe(function(data) {
+      // console.log("Space pressed? " + data[0] + "<br/>Paddle change: " + data[1]);
       if ($gamechan !== null) {
-        $gamechan.push("new:msg", {user: "SYSTEM", body: pos})
+        var gameEvent = { space: data[0], paddle: data[1] };
+        $gamechan.push("game:event", gameEvent)
       }
-    })
+    });
   }
 
   static sanitize(html){ return $("<div/>").text(html).html() }

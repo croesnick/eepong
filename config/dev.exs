@@ -6,7 +6,7 @@ use Mix.Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with brunch.io to recompile .js and .css sources.
-config :chat, EEPong.Endpoint,
+config :eepong, EEPong.Endpoint,
   http: [port: System.get_env("PORT") || 4000],
   debug_errors: true,
   cache_static_lookup: false,
@@ -14,7 +14,7 @@ config :chat, EEPong.Endpoint,
   watchers: [node: ["node_modules/brunch/bin/brunch", "watch"]]
 
 # Watch static and templates for browser reloading.
-config :chat, EEPong.Endpoint,
+config :eepong, EEPong.Endpoint,
   live_reload: [
     patterns: [
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif)$},
@@ -27,8 +27,8 @@ config :chat, EEPong.Endpoint,
 config :logger, :console, format: "[$level] $message\n"
 
 # Configure your database
-config :chat, EEPong.Repo,
+config :eepong, EEPong.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
-  database: "chat_dev"
+  database: "eepong_dev"

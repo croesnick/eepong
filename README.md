@@ -80,7 +80,7 @@ export default App
 
 #### Endpoint
 ```elixir
-# lib/chat/endpoint.ex
+# lib/eepong/endpoint.ex
 defmodule EEPong.Endpoint do
   use Phoenix.Endpoint
 

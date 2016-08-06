@@ -1,4 +1,4 @@
-# Simple Chat Example
+# Simple EEPong Example
 > Built with the [Phoenix Framework](https://github.com/phoenixframework/phoenix)
 
 To start your new Phoenix application you have to:
@@ -81,10 +81,10 @@ export default App
 #### Endpoint
 ```elixir
 # lib/chat/endpoint.ex
-defmodule Chat.Endpoint do
+defmodule EEPong.Endpoint do
   use Phoenix.Endpoint
 
-  socket "/socket", Chat.UserSocket
+  socket "/socket", EEPong.UserSocket
   ...
 end
 ```
@@ -92,10 +92,10 @@ end
 #### Socket
 ```elixir
 # web/channels/user_socket.ex
-defmodule Chat.UserSocket do
+defmodule EEPong.UserSocket do
   use Phoenix.Socket
 
-  channel "rooms:*", Chat.RoomChannel
+  channel "rooms:*", EEPong.RoomChannel
 
   transport :websocket, Phoenix.Transports.WebSocket
   transport :longpoll, Phoenix.Transports.LongPoll
@@ -105,7 +105,7 @@ end
 
 #### Channel
 ```elixir
-defmodule Chat.RoomChannel do
+defmodule EEPong.RoomChannel do
   use Phoenix.Channel
   require Logger
 

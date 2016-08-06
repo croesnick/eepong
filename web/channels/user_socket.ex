@@ -1,9 +1,9 @@
-defmodule Chat.UserSocket do
+defmodule EEPong.UserSocket do
   use Phoenix.Socket
   require Logger
 
-  channel "rooms:*", Chat.RoomChannel
-  channel "game:*",  Chat.RoomChannel
+  channel "rooms:*", EEPong.RoomChannel
+  channel "game:*",  EEPong.RoomChannel
 
   transport :websocket, Phoenix.Transports.WebSocket
   transport :longpoll, Phoenix.Transports.LongPoll

@@ -1,3 +1,3 @@
-defmodule Chat.LayoutView do
-  use Chat.Web, :view
+defmodule EEPong.LayoutView do
+  use EEPong.Web, :view
 end

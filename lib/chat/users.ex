@@ -1,5 +1,5 @@
 # This is what should later become the PlayerRegistry :)
-defmodule Chat.Users do
+defmodule EEPong.Users do
   use GenServer
   require Logger
 

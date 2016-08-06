@@ -1,7 +1,7 @@
-defmodule Chat.Endpoint do
+defmodule EEPong.Endpoint do
   use Phoenix.Endpoint, otp_app: :chat
 
-  socket "/socket", Chat.UserSocket
+  socket "/socket", EEPong.UserSocket
 
 
   # Serve at "/" the given assets from "priv/static" directory
@@ -34,5 +34,5 @@ defmodule Chat.Endpoint do
     signing_salt: "LH6XmqGb",
     encryption_salt: "CIPZg4Qo"
 
-  plug Chat.Router
+  plug EEPong.Router
 end

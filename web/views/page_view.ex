@@ -1,3 +1,3 @@
-defmodule Chat.PageView do
-  use Chat.Web, :view
+defmodule EEPong.PageView do
+  use EEPong.Web, :view
 end

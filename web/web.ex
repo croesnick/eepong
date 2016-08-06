@@ -1,12 +1,12 @@
-defmodule Chat.Web do
+defmodule EEPong.Web do
   @moduledoc """
   A module that keeps using definitions for controllers,
   views and so on.
 
   This can be used in your application as:
 
-      use Chat.Web, :controller
-      use Chat.Web, :view
+      use EEPong.Web, :controller
+      use EEPong.Web, :view
 
   Keep the definitions in this module short and clean,
   mostly focused on imports, uses and aliases.
@@ -17,7 +17,7 @@ defmodule Chat.Web do
       use Phoenix.View, root: "web/templates"
 
       # Import URL helpers from the router
-      import Chat.Router.Helpers
+      import EEPong.Router.Helpers
 
       # Import all HTML functions (forms, tags, etc)
       use Phoenix.HTML
@@ -29,10 +29,10 @@ defmodule Chat.Web do
       use Phoenix.Controller
 
       # Alias the data repository as a convenience
-      alias Chat.Repo
+      alias EEPong.Repo
 
       # Import URL helpers from the router
-      import Chat.Router.Helpers
+      import EEPong.Router.Helpers
     end
   end
 

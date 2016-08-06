@@ -1,5 +1,5 @@
-defmodule Chat.PageController do
-  use Chat.Web, :controller
+defmodule EEPong.PageController do
+  use EEPong.Web, :controller
 
   def index(conn, _params) do
     render conn, "index.html"

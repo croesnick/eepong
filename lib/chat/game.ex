@@ -1,6 +1,6 @@
 # TODO Should use Phoenix.Channel.
 # This way we guarantee that every game handles its own events and nothing else.
-defmodule Chat.Game do
+defmodule EEPong.Game do
   use GenServer
   require Logger
 
@@ -39,7 +39,7 @@ defmodule Chat.Game do
   end
 
 #  def handle_cast({:send, event}, state) do
-#    Chat.Endpoint.broadcast! state.channel, "event", event
+#    EEPong.Endpoint.broadcast! state.channel, "event", event
 #  end
 
   def whereis(game) do

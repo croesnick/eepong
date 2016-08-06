@@ -1,4 +1,4 @@
-defmodule Chat.RoomChannel do
+defmodule EEPong.RoomChannel do
   use Phoenix.Channel
   require Logger
 
@@ -44,7 +44,7 @@ defmodule Chat.RoomChannel do
 
     # -- The js-part subscribed to the channel
     # Logger.info "Subscribing user #{socket.assigns.user_id} to game channel"
-    # Chat.Endpoint.subscribe self(), "game:#{game_id}"
+    # EEPong.Endpoint.subscribe self(), "game:#{game_id}"
 
     {:noreply, socket}
   end
@@ -68,7 +68,7 @@ defmodule Chat.RoomChannel do
 
   def handle_in("game:new", _msg, socket) do
     # send a message to the first player in the list which is not myself
-    {other_player, other_socket} = Chat.Users.waiting
+    {other_player, other_socket} = EEPong.Users.waiting
                                    |> Enum.find( fn({some_user, _some_socket}) ->
                                         some_user != socket.assigns.user_id
                                       end)
@@ -80,7 +80,7 @@ defmodule Chat.RoomChannel do
         game_id = UUID.uuid1
 
         Logger.info "Creating new game #{game_id}"
-        Chat.Game.start game_id, socket, other_socket
+        EEPong.Game.start game_id, socket, other_socket
 
         Logger.info "Sending join-message to both users"
         :ok = push socket, "game:join", %{game: game_id}
@@ -100,7 +100,7 @@ defmodule Chat.RoomChannel do
   def handle_in("game:event", %{"space" => space, "paddle" => paddle} = event, socket) do
     if Map.has_key?(socket.assigns, :game_id) do
       game_id = socket.assigns.game_id
-      opponent_socket = Chat.Game.opponent game_id, socket
+      opponent_socket = EEPong.Game.opponent game_id, socket
 
       user_id = socket.assigns.user_id
       opponent_user_id = opponent_socket.assigns.user_id
@@ -114,18 +114,18 @@ defmodule Chat.RoomChannel do
     {:noreply, socket}
   end
 
-##   TODO Should be moved into Chat.Game.
+##   TODO Should be moved into EEPong.Game.
 #  def handle_in("event", %{"event" => event}, socket) do
 ##     TODO add guard for possible event names
-#    Chat.Game.handle_event socket.assigns.game, String.to_atom(event)
+#    EEPong.Game.handle_event socket.assigns.game, String.to_atom(event)
 #    {:noreply, socket}
 #  end
 
   defp login_user(user, socket) do
-    :ok = Chat.Users.add user, socket
+    :ok = EEPong.Users.add user, socket
   end
 
   defp logout_user(user) do
-    Chat.Users.remove user
+    EEPong.Users.remove user
   end
 end

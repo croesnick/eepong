@@ -1,4 +1,4 @@
-defmodule Chat.Mixfile do
+defmodule EEPong.Mixfile do
   use Mix.Project
 
   def project do
@@ -14,7 +14,7 @@ defmodule Chat.Mixfile do
   #
   # Type `mix help compile.app` for more information
   def application do
-    [mod: {Chat, []},
+    [mod: {EEPong, []},
      applications: [:phoenix, :phoenix_html, :cowboy, :logger, :gproc]]
   end
 

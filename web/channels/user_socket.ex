@@ -2,8 +2,8 @@ defmodule EEPong.UserSocket do
   use Phoenix.Socket
   require Logger
 
-  channel "rooms:*", EEPong.RoomChannel
-  channel "game:*",  EEPong.RoomChannel
+  channel "rooms:*", EEPong.EventChannel
+  channel "game:*",  EEPong.EventChannel
 
   transport :websocket, Phoenix.Transports.WebSocket
   transport :longpoll, Phoenix.Transports.LongPoll

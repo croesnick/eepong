@@ -10,20 +10,14 @@
 <div id="footer">
   <div class="container">
     <div class="row">
-      <div class="col-sm-1">
-        <button id="reset-paddle" class="btn btn-alert" type="button">Reset</button>
-      </div>
       <div class="col-sm-2">
         <button id="join-game" class="btn btn-primary" type="button">Join Game</button>
       </div>
-      <div class="col-sm-2">
+      <div class="col-sm-6">
         <div class="input-group">
-          <span class="input-group-addon">@</span>
+          <span class="input-group-addon">your name</span>
           <input id="username" type="text" class="form-control" placeholder="username">
         </div><!-- /input-group -->
-      </div><!-- /.col-lg-6 -->
-      <div class="col-sm-7">
-        <input id="message-input" class="form-control" />
       </div><!-- /.col-lg-6 -->
     </div><!-- /.row -->
   </div>

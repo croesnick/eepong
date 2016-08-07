@@ -25,6 +25,10 @@ defmodule EEPong.Users do
     GenServer.call @name, :waiting
   end
 
+  def name(name, socket) do
+    GenServer.call __MODULE__, {:name, name, socket}
+  end
+
   # internal api
 
   def handle_call({:add, user, socket}, _from, state) do
@@ -48,5 +52,10 @@ defmodule EEPong.Users do
   def handle_call(:waiting, _from, state) do
     Logger.debug "Waiting users: #{inspect Enum.map(state, fn({id, _}) -> id end)}"
     {:reply, state, state}
+  end
+
+  def handle_call({:name, name, socket}, _from, state) do
+    #TODO
+    {:reply, :ok, state}
   end
 end

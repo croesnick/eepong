@@ -9490,100 +9490,69 @@ var App = function () {
 
       var uuid = generateUUID();
       socket.connect({ user_id: uuid });
+
+      var username = $("#username");
+      username.val(uuid);
+      // username.attr("value", uuid);
+
       var $messages = $("#messages");
-      var $input = $("#message-input");
-      var $username = $("#username");
       var $joingame = $("#join-game");
       var $gamechan = null;
 
-      socket.onOpen(function (ev) {
-        return console.log("OPEN", ev);
-      });
-      socket.onError(function (ev) {
-        return console.log("ERROR", ev);
-      });
-      socket.onClose(function (e) {
-        return console.log("CLOSE", e);
-      });
+      var lobby = socket.channel("rooms:lobby", {});
+      lobby.join();
 
-      var chan = socket.channel("rooms:lobby", {});
-      chan.join().receive("ignore", function () {
-        return console.log("auth error");
-      }).receive("ok", function () {
-        return console.log("join ok");
-      }).after(10000, function () {
-        return console.log("Connection interruption");
-      });
-      chan.onError(function (e) {
-        return console.log("something went wrong", e);
-      });
-      chan.onClose(function (e) {
-        return console.log("channel closed", e);
-      });
-
-      $input.off("keypress").on("keypress", function (e) {
+      username.off("keypress").on("keypress", function (e) {
         if (e.keyCode == 13) {
-          chan.push("new:msg", { user: $username.val(), body: $input.val() });
-          $input.val("");
+          lobby.push("client_event:user:data", { user_name: username.val() });
         }
       });
 
-      chan.on("new:msg", function (msg) {
+      lobby.on("server_event:status", function (msg) {
         $messages.append(_this.messageTemplate(msg));
         scrollTo(0, document.body.scrollHeight);
       });
 
-      chan.on("user:entered", function (msg) {
-        var username = _this.sanitize(msg.user || "anonymous");
-        $messages.append("<br/><i>[" + username + " entered]</i>");
+      lobby.on("server_event:user:join", function (msg) {
+        var username = _this.sanitize(msg.user_name);
+        $messages.append("<br/>[" + username + " joined]");
+      });
+
+      lobby.on("server_event:user:nameChange", function (msg) {
+        var name_now = _this.sanitize(msg.name_now);
+        var name_before = _this.sanitize(msg.name_before);
+        $messages.append("<br/>[" + name_before + " is now named " + name_now + "]");
       });
 
       $joingame.on("click", function () {
-        chan.push("game:new", null);
+        lobby.push("client_event:game:new", null);
       });
 
       var elmInitValues = { inputPort: [false, 0] };
       var elmDiv = document.getElementById('elm-main'),
           elmApp = Elm.embed(Elm.Pong, elmDiv, elmInitValues);
 
-      chan.on("game:join", function (msg) {
+      lobby.on("server_event:game:join", function (msg) {
+        //TODO Assign the socket only to the $gamechan variable if the receive
+        //hook returned an "ok". Otherwise the Elm output port would start too
+        //early to push data.
         $gamechan = socket.channel("game:" + msg.game, {});
-        $gamechan.join().receive("ignore", function () {
-          return console.log("auth error");
-        }).receive("ok", function () {
-          return console.log("Joined game:" + msg.game);
-        }).after(10000, function () {
-          return console.log("Connection interruption");
-        });
-        $gamechan.onError(function (e) {
-          return console.log("something went wrong", e);
-        });
-        $gamechan.onClose(function (e) {
-          return console.log("channel closed", e);
-        });
-
-        // $gamechan.on("new:msg", msg => {
-        //   $messages.append(this.messageTemplate(msg))
-        //   scrollTo(0, document.body.scrollHeight)
-        // })
+        $gamechan.join();
 
         //TODO Uff: The game:eventX message is passed over the wrong channel :-O
-        chan.on("game:event2", function (msg) {
-          // console.log("Got upstream game event: " + msg);
+        lobby.on("server_event:game:state", function (msg) {
           var eventData = [msg["space"], msg["paddle"]];
           elmApp.ports.inputPort.send(eventData);
         });
 
         $messages.append("<p><strong>You joined game " + msg.game + "</strong></p>");
-
         // TODO Enable/load Elm Pong
       });
 
       elmApp.ports.outputPort.subscribe(function (data) {
-        // console.log("Space pressed? " + data[0] + "<br/>Paddle change: " + data[1]);
         if ($gamechan !== null) {
           var gameEvent = { space: data[0], paddle: data[1] };
-          $gamechan.push("game:event", gameEvent);
+          $gamechan.push("client_event:game:state", gameEvent);
         }
       });
     }

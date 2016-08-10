@@ -50,8 +50,8 @@ defmodule EEPong.EventChannel do
         EEPong.Game.start game_id, socket, other_socket
 
         Logger.info "Sending join-message to both users"
-        :ok = push socket, "server_event:game:join", %{game: game_id}
-        :ok = push other_socket, "server_event:game:join", %{game: game_id}
+        :ok = push socket, "server_event:game:join", %{game: game_id, player: 1}
+        :ok = push other_socket, "server_event:game:join", %{game: game_id, player: 2}
     end
     {:noreply, socket}
   end

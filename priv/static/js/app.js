@@ -9288,6 +9288,11 @@ Elm.Pong.make = function (_elm) {
    var pongGreen = A3($Color.rgb,60,100,60);
    var stepObj = F2(function (t,_p2) {    var _p3 = _p2;return _U.update(_p3,{x: _p3.x + _p3.vx * t,y: _p3.y + _p3.vy * t});});
    var stepV = F3(function (v,lowerCollision,upperCollision) {    return lowerCollision ? $Basics.abs(v) : upperCollision ? 0 - $Basics.abs(v) : v;});
+   var configPort = Elm.Native.Port.make(_elm).inbound("configPort",
+   "Bool",
+   function (v) {
+      return typeof v === "boolean" ? v : _U.badPort("a boolean (true or false)",v);
+   });
    var inputPort = Elm.Native.Port.make(_elm).inboundSignal("inputPort",
    "( Bool, Int )",
    function (v) {
@@ -9316,7 +9321,13 @@ Elm.Pong.make = function (_elm) {
    var _p8 = {ctor: "_Tuple2",_0: 300,_1: 200};
    var halfWidth = _p8._0;
    var halfHeight = _p8._1;
-   var defaultGame = {state: Pause,ball: {x: 0,y: 0,vx: 200,vy: 200},player1: player(20 - halfWidth),player2: player(halfWidth - 20)};
+   var defaultGame = function (startLeft) {
+      var right = halfWidth - 20;
+      var left = 20 - halfWidth;
+      var player1_x = startLeft ? left : right;
+      var player2_x = startLeft ? right : left;
+      return {state: Pause,ball: {x: 0,y: 0,vx: 200,vy: 200},player1: player(player1_x),player2: player(player2_x)};
+   };
    var stepBall = F4(function (t,_p9,player1,player2) {
       var _p10 = _p9;
       var _p12 = _p10.y;
@@ -9358,7 +9369,7 @@ Elm.Pong.make = function (_elm) {
       var state$ = player1_won || player2_won ? End : space ? Play : !_U.eq(score1,score2) ? Pause : state;
       return _U.update(game,{state: state$,ball: ball$,player1: player1$,player2: player2$});
    });
-   var gameState = A3($Signal.foldp,stepGame,defaultGame,input);
+   var gameState = A3($Signal.foldp,stepGame,defaultGame(configPort),input);
    var display = F2(function (_p17,_p16) {
       var _p18 = _p17;
       var _p19 = _p16;
@@ -9488,6 +9499,8 @@ var App = function () {
         }
       });
 
+      var elmApp;
+
       var uuid = generateUUID();
       socket.connect({ user_id: uuid });
 
@@ -9528,16 +9541,27 @@ var App = function () {
         lobby.push("client_event:game:new", null);
       });
 
-      var elmInitValues = { inputPort: [false, 0] };
-      var elmDiv = document.getElementById('elm-main'),
-          elmApp = Elm.embed(Elm.Pong, elmDiv, elmInitValues);
-
       lobby.on("server_event:game:join", function (msg) {
         //TODO Assign the socket only to the $gamechan variable if the receive
         //hook returned an "ok". Otherwise the Elm output port would start too
         //early to push data.
         $gamechan = socket.channel("game:" + msg.game, {});
         $gamechan.join();
+        // .receive("ignore", () => console.log("game: auth error"))
+        // .receive("ok", () => console.log("game: join ok"))
+        // .after(10000, () => console.log("game: Connection interruption"))
+
+        var elmInitValues = { inputPort: [false, 0], configPort: msg.player == 1 };
+        var elmDiv = document.getElementById('elm-main');
+        elmApp = Elm.embed(Elm.Pong, elmDiv, elmInitValues);
+
+        elmApp.ports.outputPort.subscribe(function (data) {
+          if ($gamechan !== null) {
+            var gameEvent = { space: data[0], paddle: data[1] };
+            $gamechan.push("client_event:game:state", gameEvent);
+          }
+        });
+        // elmApp.ports.outputPort.unsubscribe;
 
         //TODO Uff: The game:eventX message is passed over the wrong channel :-O
         lobby.on("server_event:game:state", function (msg) {
@@ -9547,13 +9571,6 @@ var App = function () {
 
         $messages.append("<p><strong>You joined game " + msg.game + "</strong></p>");
         // TODO Enable/load Elm Pong
-      });
-
-      elmApp.ports.outputPort.subscribe(function (data) {
-        if ($gamechan !== null) {
-          var gameEvent = { space: data[0], paddle: data[1] };
-          $gamechan.push("client_event:game:state", gameEvent);
-        }
       });
     }
   }, {

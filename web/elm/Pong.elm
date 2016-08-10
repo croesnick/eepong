@@ -42,6 +42,7 @@ type alias Player =
     Object { score : Int }
 
 type State = Play | Pause | End
+--type UpdateState = Event Input | Config Bool
 
 type alias Game =
     { state : State
@@ -54,12 +55,19 @@ player : Float -> Player
 player x =
     { x=x, y=0, vx=0, vy=0, score=0 }
 
-defaultGame : Game
-defaultGame =
+defaultGame : Bool -> Game
+defaultGame startLeft =
+  let
+    left  = 20-halfWidth
+    right = halfWidth-20
+
+    player1_x = if startLeft then left else right
+    player2_x = if startLeft then right else left
+  in
     { state   = Pause
     , ball    = { x=0, y=0, vx=200, vy=200 }
-    , player1 = player (20-halfWidth)
-    , player2 = player (halfWidth-20)
+    , player1 = player (player1_x)
+    , player2 = player (player2_x)
     }
 
 
@@ -68,15 +76,16 @@ defaultGame =
 
 gameState : Signal Game
 gameState =
-    Signal.foldp stepGame defaultGame input
+  Signal.foldp stepGame (defaultGame configPort) input
+--  Signal.foldp stepGame defaultGame (Signal.merge configPort input)
 
 delta : Signal Time
 delta =
-    Signal.map inSeconds (fps 35)
+  Signal.map inSeconds (fps 35)
 
 input : Signal Input
 input =
-    Signal.map2 inputMerger localInput remoteInput
+  Signal.map2 inputMerger localInput remoteInput
 
 localInput : Signal Input
 localInput =
@@ -98,6 +107,8 @@ remoteInput =
 
 port inputPort : Signal (Bool, Int)
 --port inputPort = Signal.constant (False, 0)
+
+port configPort : Bool
 
 port outputPort : Signal (Bool, Int)
 port outputPort =

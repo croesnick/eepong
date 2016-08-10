@@ -15,16 +15,17 @@ function generateUUID(){
 
 class App {
   static init() {
-    let socket = new Socket("/socket", {
+    var socket = new Socket("/socket", {
       logger: ((kind, msg, data) => { console.log(`${kind}: ${msg}`, data) })
     })
     
-    let uuid = generateUUID();
+    var elmApp;
+    
+    var uuid = generateUUID();
     socket.connect({user_id: uuid});
 
-    let username = $("#username");
+    var username = $("#username");
     username.val(uuid);
-    // username.attr("value", uuid);
     
     var $messages = $("#messages");
     var $joingame = $("#join-game");
@@ -59,10 +60,6 @@ class App {
       lobby.push("client_event:game:new", null);
     })
     
-    var elmInitValues = { inputPort: [false, 0] };
-    var elmDiv = document.getElementById('elm-main'),
-        elmApp = Elm.embed(Elm.Pong, elmDiv, elmInitValues);
-    
     lobby.on("server_event:game:join", msg => {
       //TODO Assign the socket only to the $gamechan variable if the receive
       //hook returned an "ok". Otherwise the Elm output port would start too
@@ -70,7 +67,17 @@ class App {
       $gamechan = socket.channel("game:" + msg.game, {});
       $gamechan.join();
     
-      //TODO Uff: The game:eventX message is passed over the wrong channel :-O
+      var elmInitValues = { inputPort: [false, 0], configPort: msg.player == 1 };
+      var elmDiv = document.getElementById('elm-main');
+      elmApp = Elm.embed(Elm.Pong, elmDiv, elmInitValues);
+    
+      elmApp.ports.outputPort.subscribe(function(data) {
+        if ($gamechan !== null) {
+          var gameEvent = { space: data[0], paddle: data[1] };
+          $gamechan.push("client_event:game:state", gameEvent)
+        }
+      });
+
       lobby.on("server_event:game:state", msg => {
         var eventData = [ msg["space"], msg["paddle"] ];
         elmApp.ports.inputPort.send(eventData);
@@ -78,21 +85,14 @@ class App {
     
       $messages.append(`<p><strong>You joined game ${msg.game}</strong></p>`);
       // TODO Enable/load Elm Pong
-    });
-    
-    elmApp.ports.outputPort.subscribe(function(data) {
-      if ($gamechan !== null) {
-        var gameEvent = { space: data[0], paddle: data[1] };
-        $gamechan.push("client_event:game:state", gameEvent)
-      }
-    });
+    })
   }
 
   static sanitize(html){ return $("<div/>").text(html).html() }
 
   static messageTemplate(msg){
-    let username = this.sanitize(msg.user || "anonymous")
-    let body     = this.sanitize(msg.body)
+    var username = this.sanitize(msg.user || "anonymous");
+    var body     = this.sanitize(msg.body);
 
     return(`<p><a href='#'>[${username}]</a>&nbsp; ${body}</p>`)
   }

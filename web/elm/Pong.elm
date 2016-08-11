@@ -42,7 +42,6 @@ type alias Player =
     Object { score : Int }
 
 type State = Play | Pause | End
---type UpdateState = Event Input | Config Bool
 
 type alias Game =
     { state : State

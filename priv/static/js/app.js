@@ -9506,7 +9506,6 @@ var App = function () {
 
       var username = $("#username");
       username.val(uuid);
-      // username.attr("value", uuid);
 
       var $messages = $("#messages");
       var $joingame = $("#join-game");
@@ -9547,9 +9546,6 @@ var App = function () {
         //early to push data.
         $gamechan = socket.channel("game:" + msg.game, {});
         $gamechan.join();
-        // .receive("ignore", () => console.log("game: auth error"))
-        // .receive("ok", () => console.log("game: join ok"))
-        // .after(10000, () => console.log("game: Connection interruption"))
 
         var elmInitValues = { inputPort: [false, 0], configPort: msg.player == 1 };
         var elmDiv = document.getElementById('elm-main');
@@ -9561,9 +9557,7 @@ var App = function () {
             $gamechan.push("client_event:game:state", gameEvent);
           }
         });
-        // elmApp.ports.outputPort.unsubscribe;
 
-        //TODO Uff: The game:eventX message is passed over the wrong channel :-O
         lobby.on("server_event:game:state", function (msg) {
           var eventData = [msg["space"], msg["paddle"]];
           elmApp.ports.inputPort.send(eventData);
